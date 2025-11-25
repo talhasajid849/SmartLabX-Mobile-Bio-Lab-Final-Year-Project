@@ -1,0 +1,8 @@
+// Connect to actual device
+const server = await device.gatt.connect();
+const service = await server.getPrimaryService('your-service-uuid');
+const characteristic = await service.getCharacteristic('your-characteristic-uuid');
+
+// Read value
+const value = await characteristic.readValue();
+const temp = value.getFloat32(0, true); // Example

@@ -1,0 +1,360 @@
+/* ==================== Section Container ==================== */
+.quickActions {
+  margin-bottom: 50px;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==================== Section Header ==================== */
+.sectionHeader {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.sectionTitle {
+  font-size: 32px;
+  color: #1e293b;
+  margin: 0 0 8px 0;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.titleIcon {
+  font-size: 36px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.sectionSubtitle {
+  font-size: 16px;
+  color: #64748b;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* ==================== Actions Grid ==================== */
+.actionsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+/* ==================== Action Card ==================== */
+.actionCard {
+  background: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 0;
+}
+
+.actionCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--gradient);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s ease;
+}
+
+.actionCard:hover::before {
+  transform: scaleX(1);
+}
+
+.actionCard:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.actionCard:active {
+  transform: translateY(-4px);
+}
+
+/* ==================== Card Background ==================== */
+.cardBackground {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--gradient);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 0;
+}
+
+.actionCard:hover .cardBackground {
+  opacity: 0.05;
+}
+
+/* ==================== Card Inner ==================== */
+.cardInner {
+  position: relative;
+  z-index: 1;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* ==================== Icon Wrapper ==================== */
+.iconWrapper {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon {
+  font-size: 48px;
+  position: relative;
+  z-index: 2;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: block;
+}
+
+.iconGlow {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--gradient);
+  opacity: 0.15;
+  filter: blur(20px);
+  transition: all 0.4s ease;
+  z-index: 1;
+}
+
+.actionCard:hover .icon {
+  transform: scale(1.2) rotate(5deg);
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+}
+
+.actionCard:hover .iconGlow {
+  opacity: 0.3;
+  transform: scale(1.3);
+}
+
+/* ==================== Card Content ==================== */
+.cardContent {
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.actionTitle {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  transition: all 0.3s ease;
+  line-height: 1.3;
+}
+
+.actionDescription {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  color: #64748b;
+  line-height: 1.5;
+  transition: all 0.3s ease;
+}
+
+.actionCard:hover .actionTitle {
+  color: var(--color);
+  transform: translateY(-2px);
+}
+
+.actionCard:hover .actionDescription {
+  color: #475569;
+}
+
+/* ==================== Arrow Icon ==================== */
+.arrowIcon {
+  font-size: 24px;
+  color: var(--color);
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.actionCard:hover .arrowIcon {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ==================== Focus State ==================== */
+.actionCard:focus-visible {
+  outline: 3px solid var(--color);
+  outline-offset: 4px;
+}
+
+/* ==================== Stagger Animation ==================== */
+.actionCard:nth-child(1) { animation-delay: 0.1s; }
+.actionCard:nth-child(2) { animation-delay: 0.2s; }
+.actionCard:nth-child(3) { animation-delay: 0.3s; }
+.actionCard:nth-child(4) { animation-delay: 0.4s; }
+.actionCard:nth-child(5) { animation-delay: 0.5s; }
+
+.actionCard {
+  animation: cardFadeIn 0.6s ease-out backwards;
+}
+
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==================== Responsive Design ==================== */
+@media (max-width: 1200px) {
+  .actionsGrid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sectionTitle {
+    font-size: 26px;
+  }
+
+  .actionsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .cardInner {
+    padding: 24px 20px;
+    gap: 16px;
+  }
+
+  .iconWrapper {
+    width: 75px;
+    height: 75px;
+  }
+
+  .icon {
+    font-size: 40px;
+  }
+
+  .actionTitle {
+    font-size: 16px;
+  }
+
+  .actionDescription {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .actionsGrid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .cardInner {
+    padding: 28px 24px;
+  }
+
+  .iconWrapper {
+    width: 80px;
+    height: 80px;
+  }
+
+  .icon {
+    font-size: 44px;
+  }
+}
+
+/* ==================== Dark Mode ==================== */
+@media (prefers-color-scheme: dark) {
+  .actionCard {
+    background: #1e293b;
+  }
+
+  .sectionTitle {
+    color: #f1f5f9;
+  }
+
+  .sectionSubtitle {
+    color: #cbd5e1;
+  }
+
+  .actionTitle {
+    color: #f1f5f9;
+  }
+
+  .actionDescription {
+    color: #cbd5e1;
+  }
+
+  .actionCard:hover .cardBackground {
+    opacity: 0.1;
+  }
+}
+
+/* ==================== Reduced Motion ==================== */
+@media (prefers-reduced-motion: reduce) {
+  .actionCard,
+  .icon,
+  .arrowIcon,
+  .titleIcon {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* ==================== Print Styles ==================== */
+@media print {
+  .actionCard {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #e5e7eb;
+  }
+
+  .actionCard:hover {
+    transform: none;
+  }
+
+  .arrowIcon {
+    display: none;
+  }
+}

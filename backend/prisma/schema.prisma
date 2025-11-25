@@ -1,0 +1,198 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Enums
+enum UserRole {
+  student
+  researcher
+  technician
+  admin
+}
+
+enum RequestStatus {
+  pending
+  confirmed
+  cancelled
+  completed
+}
+
+enum SampleType {
+  water
+  soil
+  plant
+  biological_fluid
+  other
+}
+
+enum SampleStatus {
+  pending
+  approved
+  rejected
+  under_review
+}
+
+enum ReportStatus {
+  pending
+  completed
+  failed
+}
+
+enum NotificationType {
+  info
+  success
+  warning
+  error
+}
+
+// Models
+model Users {
+  users_id               Int       @id @default(autoincrement())
+  first_name             String
+  last_name              String
+  email                  String    @unique
+  password               String
+  role                   UserRole  @default(student)
+  mobile_no              String
+  city                   String
+  profile_picture        String?
+  created_at             DateTime  @default(now())
+  updated_at             DateTime  @updatedAt
+  last_login             DateTime?
+  last_modified_by_admin Int?
+
+  mobile_lab_requests MobileLabRequests[]
+  samples             Samples[]
+  reports             Reports[]           @relation("ReportUser")
+  report_shares       ReportShares[]      @relation("SharedByUser")
+  created_protocols   Protocols[]         @relation("ProtocolAdmin")
+  system_logs         SystemLog[]
+  notifications       Notifications[]
+}
+
+model MobileLabRequests {
+  request_id   Int           @id @default(autoincrement())
+  users_id     Int
+   request_date DateTime  @db.Date       // Only date
+  request_time DateTime  @db.Time       // Only time
+  status       RequestStatus @default(pending)
+  purpose      String?
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @default(now())
+
+  user Users @relation(fields: [users_id], references: [users_id], onDelete: Cascade)
+}
+
+model BLEDevice {
+  ble_device_id     Int       @id @default(autoincrement())
+   users_id          Int       // add this
+  device_name       String
+  device_type       String
+  session_started_at DateTime? // add this
+  last_time_connect DateTime?
+  created_at        DateTime  @default(now())
+
+  samples Samples[]
+}
+
+model Samples {
+  samples_id          Int          @id @default(autoincrement())
+  users_id            Int
+  sample_identifier   String       @unique
+  collection_datetime DateTime
+  sample_type         SampleType
+  geolocation         String?
+  latitude            Float?
+  longitude           Float?
+  ph                  Float?
+  temperature         Float?
+  salinity            Float?
+  notes               String?
+  qr_code_data        String?
+  ble_device_id       Int?
+  created_at          DateTime     @default(now())
+  updated_at          DateTime     @updatedAt
+  status              SampleStatus @default(pending)
+
+  user       Users      @relation(fields: [users_id], references: [users_id], onDelete: Cascade)
+  ble_device BLEDevice? @relation(fields: [ble_device_id], references: [ble_device_id], onDelete: SetNull)
+  reports    Reports[]
+}
+
+model Reports {
+  report_id    Int          @id @default(autoincrement())
+  user_id      Int
+  sample_id    Int
+  title        String
+  generated_on DateTime     @default(now())
+  pdf_url      String?
+  chart_data   Json?
+  status       ReportStatus @default(pending)
+
+  user   Users          @relation("ReportUser", fields: [user_id], references: [users_id], onDelete: Cascade)
+  sample Samples        @relation(fields: [sample_id], references: [samples_id], onDelete: Cascade)
+  shares ReportShares[]
+}
+
+model ReportShares {
+  share_id          Int       @id @default(autoincrement())
+  report_id         Int
+  shared_by         Int
+  shared_with_email String
+  share_token       String    @unique
+  created_at        DateTime  @default(now())
+  expires_at        DateTime?
+
+  report Reports @relation(fields: [report_id], references: [report_id], onDelete: Cascade)
+  user   Users   @relation("SharedByUser", fields: [shared_by], references: [users_id], onDelete: Cascade)
+}
+
+model Protocols {
+  protocols_id     Int      @id @default(autoincrement())
+  title            String
+  description      String?
+  sample_type      String?
+  steps            String
+  category         String?
+  experiment_type  String?
+  created_by_admin Int?
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  admin Users? @relation("ProtocolAdmin", fields: [created_by_admin], references: [users_id], onDelete: SetNull)
+}
+
+model SystemLog {
+  log_id    Int      @id @default(autoincrement())
+  users_id  Int
+  action    String
+  details   String?
+  timestamp DateTime @default(now())
+
+  user Users @relation(fields: [users_id], references: [users_id], onDelete: Cascade)
+}
+
+model Notifications {
+  notifications_id Int              @id @default(autoincrement())
+  user_id          Int
+  type             NotificationType @default(info)
+  message          String
+  title            String?
+  is_read          Boolean          @default(false)
+  created_at       DateTime         @default(now())
+
+  user Users @relation(fields: [user_id], references: [users_id], onDelete: Cascade)
+}
+
+model PasswordResets {
+  id         Int      @id @default(autoincrement())
+  email      String
+  token      String
+  created_at DateTime @default(now())
+  expires_at DateTime
+}

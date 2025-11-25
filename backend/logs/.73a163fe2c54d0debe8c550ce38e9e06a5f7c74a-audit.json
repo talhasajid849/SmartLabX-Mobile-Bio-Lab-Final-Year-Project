@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "D:\\MY Revision Project\\Full Stack NEXT js\\Mobile Bio Lab Final Year Project\\smartlabx_mobile_bio_lab\\backend\\logs\\.73a163fe2c54d0debe8c550ce38e9e06a5f7c74a-audit.json",
+    "files": [
+        {
+            "date": 1763085696476,
+            "name": "D:\\MY Revision Project\\Full Stack NEXT js\\Mobile Bio Lab Final Year Project\\smartlabx_mobile_bio_lab\\backend\\logs\\combined-2025-11-14.log",
+            "hash": "571715c1250f0e3a68c0044cadef5c7c5a1c8c1bf51b001017a6ad7c57cd7218"
+        }
+    ],
+    "hashType": "sha256"
+}

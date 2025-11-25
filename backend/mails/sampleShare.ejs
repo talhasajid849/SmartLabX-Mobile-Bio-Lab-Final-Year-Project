@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Sample Shared</title>
+</head>
+
+<body style="margin:0; padding:0; font-family: 'Helvetica Neue', Arial, sans-serif; background:#f7f7f7;">
+
+  <div style="max-width: 600px; margin: 40px auto; background: #ffffff; 
+              border-radius: 16px; box-shadow: 0 10px 35px rgba(0,0,0,0.1); overflow:hidden;">
+
+    <!-- Header -->
+    <div style="background-color:#111; padding: 32px; text-align:center; color:white;">
+      <h1 style="margin:0; font-size:28px; letter-spacing:1px;">🔬 Mobile Bio Lab</h1>
+      <p style="margin:6px 0 0; font-size:15px; opacity:0.9;">Secure Sample Sharing</p>
+    </div>
+
+    <!-- Body -->
+    <div style="padding:40px; color:#111; text-align:center;">
+      <h2 style="margin-top:0; color:#111; font-size:24px;">A Sample Was Shared With You</h2>
+
+      <p style="font-size:16px; line-height:1.6; color:#444;">
+        The following sample has been securely shared with you through <strong>Mobile Bio Lab</strong>.
+        Click the button below to view the sample details.
+      </p>
+
+      <!-- View Button -->
+      <a href="<%= shareLink %>" 
+         style="display:inline-block; margin: 30px 0; padding: 14px 32px; 
+                background:#111; color:#fff; text-decoration:none; 
+                border-radius:8px; font-size:16px; font-weight:600; 
+                transition:0.3s;">
+        View Sample
+      </a>
+
+      <p style="font-size:14px; color:#666; margin-top:25px;">
+        If you did not expect this sample share, you can safely ignore this email.
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div style="background:#f1f1f1; padding:20px; text-align:center; font-size:12px; color:#777;">
+      &copy; 2025 Mobile Bio Lab. All rights reserved.
+    </div>
+
+  </div>
+
+</body>
+</html>

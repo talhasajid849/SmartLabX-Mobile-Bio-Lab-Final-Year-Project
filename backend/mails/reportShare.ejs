@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Shared - Mobile Bio Lab</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7fa;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .header p {
+            margin: 10px 0 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .content h2 {
+            color: #333;
+            margin-top: 0;
+        }
+        .content p {
+            color: #666;
+            line-height: 1.6;
+            margin: 15px 0;
+        }
+        .report-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+        }
+        .report-info p {
+            margin: 10px 0;
+        }
+        .report-info strong {
+            color: #333;
+        }
+        .button {
+            display: inline-block;
+            padding: 15px 35px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .button:hover {
+            opacity: 0.9;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 25px;
+            text-align: center;
+            color: #888;
+            font-size: 13px;
+        }
+        .footer p {
+            margin: 5px 0;
+        }
+        .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px 16px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .warning p {
+            margin: 0;
+            color: #856404;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="icon">🔬</div>
+            <h1>Mobile Bio Lab</h1>
+            <p>ABC Laboratories</p>
+        </div>
+        
+        <div class="content">
+            <h2>📊 Report Shared With You</h2>
+            <p>Hello!</p>
+            <p>
+                <strong><%= senderName || 'A colleague' %></strong> has shared a biology lab report with you through Mobile Bio Lab.
+            </p>
+            
+            <div class="report-info">
+                <p><strong>📄 Report:</strong> <%= reportIdentifier %></p>
+                <p><strong>⏰ Shared On:</strong> <%= new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></p>
+                <% if (expiresAt) { %>
+                <p><strong>⚠️ Link Expires:</strong> <%= expiresAt %></p>
+                <% } %>
+            </div>
+            
+            <p>Click the button below to view the report:</p>
+            
+            <center>
+                <a href="<%= reportLink %>" class="button">
+                    📖 View Report
+                </a>
+            </center>
+            
+            <div class="warning">
+                <p>
+                    <strong>🔒 Security Note:</strong> This link is unique to you. Do not share it with others.
+                </p>
+            </div>
+            
+            <p style="margin-top: 30px; font-size: 13px; color: #888;">
+                <strong>Note:</strong> This is a read-only shared link. If you need to make changes or have questions, 
+                please contact <strong><%= senderName || 'the person' %></strong> who shared this report with you.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Mobile Bio Lab</strong> - ABC Laboratories</p>
+            <p>© <%= new Date().getFullYear() %> All rights reserved</p>
+            <p style="margin-top: 15px;">
+                This email was sent because someone shared a report with you. 
+                If you believe this was sent in error, please ignore this message.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

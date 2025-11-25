@@ -1,0 +1,393 @@
+/* ===== Main Container ===== */
+.protocolsPage {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 30px;
+  background: transparent;
+  min-height: 100vh;
+}
+
+/* ===== Page Header ===== */
+.pageHeader {
+  margin-bottom: 40px;
+}
+
+.pageHeader h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 8px 0;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #fff;
+  margin: 0;
+}
+
+/* ===== Loading ===== */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 20px;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== Filters Section ===== */
+.filtersSection {
+  margin-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.searchInput {
+  width: 100%;
+  max-width: 600px;
+  padding: 14px 20px 14px 50px;
+  font-size: 16px;
+  color: #1e293b;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  outline: none;
+  transition: all 0.3s ease;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 18px center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.searchInput:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.categoryFilters {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.categoryBtn {
+  padding: 10px 20px;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.categoryBtn:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.categoryBtn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+  color: white;
+}
+
+/* ===== Protocols Grid ===== */
+.protocolsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+/* ===== Protocol Card ===== */
+.protocolCard {
+  background: #ffffffd5;
+  border-radius: 12px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.protocolCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.protocolCard:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  border-color: #667eea;
+}
+
+.protocolCard:hover::before {
+  transform: scaleX(1);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.cardHeader h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.category {
+  display: inline-block;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  color: #1e40af;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 20px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.description {
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
+  flex: 1;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cardFooter {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sampleType,
+.experimentType {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+}
+
+.cardAction {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.cardAction span {
+  color: #667eea;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.protocolCard:hover .cardAction span {
+  transform: translateX(4px);
+}
+
+/* ===== Empty State ===== */
+.emptyState {
+  text-align: center;
+  padding: 80px 20px;
+  background: white;
+  border-radius: 12px;
+  border: 2px dashed #e5e7eb;
+}
+
+.emptyIcon {
+  font-size: 80px;
+  margin-bottom: 20px;
+}
+
+.emptyState h3 {
+  font-size: 24px;
+  color: #1e293b;
+  margin: 0 0 8px 0;
+}
+
+.emptyState p {
+  font-size: 16px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .protocolsPage {
+    padding: 20px;
+  }
+
+  .pageHeader h1 {
+    font-size: 24px;
+  }
+
+  .protocolsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .searchInput {
+    max-width: 100%;
+  }
+}
+/* ===== Results Info ===== */
+.resultsInfo {
+  margin-bottom: 20px;
+  padding: 12px 20px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.resultsInfo p {
+  margin: 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.resultsInfo strong {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+/* ===== Load More Container ===== */
+.loadMoreContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+  padding: 20px 0;
+}
+
+.loadMoreBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 40px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.loadMoreBtn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.loadMoreBtn:active {
+  transform: translateY(-1px);
+}
+
+.remainingCount {
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+/* ===== Smooth Animations ===== */
+.protocolCard {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stagger animation for cards */
+.protocolCard:nth-child(1) { animation-delay: 0.05s; }
+.protocolCard:nth-child(2) { animation-delay: 0.1s; }
+.protocolCard:nth-child(3) { animation-delay: 0.15s; }
+.protocolCard:nth-child(4) { animation-delay: 0.2s; }
+.protocolCard:nth-child(5) { animation-delay: 0.25s; }
+.protocolCard:nth-child(6) { animation-delay: 0.3s; }
+.protocolCard:nth-child(7) { animation-delay: 0.35s; }
+.protocolCard:nth-child(8) { animation-delay: 0.4s; }
+.protocolCard:nth-child(9) { animation-delay: 0.45s; }
+
+/* ===== Responsive Load More Button ===== */
+@media (max-width: 768px) {
+  .loadMoreContainer {
+    margin-top: 30px;
+    padding: 15px 0;
+  }
+
+  .loadMoreBtn {
+    width: 100%;
+    max-width: 300px;
+    padding: 14px 30px;
+    font-size: 15px;
+  }
+
+  .remainingCount {
+    font-size: 12px;
+  }
+}
+
+/* ===== Reduced Motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .protocolCard {
+    animation: none;
+  }
+
+  .loadMoreBtn {
+    transition: none;
+  }
+}
