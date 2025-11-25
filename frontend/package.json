@@ -1,24 +1,14 @@
 {
-<<<<<<< HEAD
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-=======
-  "name": "smartlabx_mobile_bio_lab",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
->>>>>>> 3b0dcff828ec79e0a263c977aa2894f301d7c293
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
-<<<<<<< HEAD
     "@reduxjs/toolkit": "^2.10.1",
     "axios": "^1.13.2",
     "chart.js": "^4.5.1",
@@ -42,15 +32,5 @@
   "devDependencies": {
     "eslint": "^9",
     "eslint-config-next": "16.0.1"
-=======
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "next": "15.5.4"
-  },
-  "devDependencies": {
-    "eslint": "^9",
-    "eslint-config-next": "15.5.4",
-    "@eslint/eslintrc": "^3"
->>>>>>> 3b0dcff828ec79e0a263c977aa2894f301d7c293
   }
 }
