@@ -19,16 +19,24 @@ export default function LoginPage() {
   const router = useRouter();
   const dispatch = useDispatch();
   const { isAuthenticated, loading } = useSelector((state) => state.user);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
- useEffect(() => {
+useEffect(() => {
   if (!isAuthenticated) {
-    dispatch(loadUser());
+    dispatch(loadUser()).finally(() => setCheckingAuth(false));
+  } else {
+    setCheckingAuth(false);
   }
 }, [dispatch, isAuthenticated]);
 
-
-if (isAuthenticated) {
+// Only redirect when auth check is complete
+if (!checkingAuth && isAuthenticated) {
   router.replace("/dashboard");
+  return null; 
+}
+
+if (checkingAuth) {
+  return <LoadingSpinner />; 
 }
 
  
@@ -50,7 +58,7 @@ if (isAuthenticated) {
         }
       );
       // console.log(res);
-      toast.success("Login Successfull....!");
+      toast.success("Login Successfull...");
       router.push("/dashboard");
     } catch (err) {
       console.error(err.response || err);

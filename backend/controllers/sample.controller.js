@@ -10,13 +10,17 @@ const logger = require("../logs/looger");
 const sendMail = require("../utils/sendEmail");
 const redis = require("../utils/redis");
 const LogService = require("../services/logService");
+const uploadToCloudinary = require("../utils/cloudinaryUpload");
 
 // Cache key helpers
 const getSampleCacheKey = (sampleId) => `sample:${sampleId}`;
-const getUserSamplesCacheKey = (userId, page = 1, limit = 20) => `user:${userId}:samples:page:${page}:limit:${limit}`;
+const getUserSamplesCacheKey = (userId, page = 1, limit = 20) =>
+  `user:${userId}:samples:page:${page}:limit:${limit}`;
 const getSampleChartCacheKey = (userId, filters) => {
   const { sampleType, startDate, endDate } = filters;
-  return `user:${userId}:chart:${sampleType || 'all'}:${startDate || 'any'}:${endDate || 'any'}`;
+  return `user:${userId}:chart:${sampleType || "all"}:${startDate || "any"}:${
+    endDate || "any"
+  }`;
 };
 
 exports.createSample = catchAsyncErrors(async (req, res, next) => {
@@ -39,18 +43,36 @@ exports.createSample = catchAsyncErrors(async (req, res, next) => {
       return next(new ErrorHandler("Unauthorized", 401));
     }
 
+    // Generate unique sample_identifier if not provided
+    const sampleId = (
+      sample_identifier ||
+      "SAMPLE-" + uuidv4().replace(/-/g, "").substring(0, 12)
+    )
+      .trim()
+      .replace(/\s+/g, "_");
+
     // Validate required fields
     if (!collection_datetime || !sample_type) {
       return next(
-        new ErrorHandler("Sample type and collection date/time are required", 400)
+        new ErrorHandler(
+          "Sample type and collection date/time are required",
+          400
+        )
       );
     }
 
-    // Generate unique sample_identifier if not provided
-    const sampleId =
-      (sample_identifier || "SAMPLE-" + uuidv4().substring(0, 8))
-        .trim()
-        .replace(/\s+/g, "_");
+    const existingSample = await prisma.samples.findUnique({
+      where: { sample_identifier: sampleId },
+    });
+
+    if (existingSample) {
+      return next(
+        new ErrorHandler(
+          "Sample identifier already exists. Please use a different identifier.",
+          400
+        )
+      );
+    }
 
     // If BLE session provided → validate
     if (ble_session_id) {
@@ -84,7 +106,7 @@ exports.createSample = catchAsyncErrors(async (req, res, next) => {
     }
 
     // -----------------------------
-    //  🔥 Generate QR Code & Upload to Cloudinary
+    //  Generate QR Code & Upload to Cloudinary
     // -----------------------------
 
     const qrData = JSON.stringify({
@@ -96,22 +118,41 @@ exports.createSample = catchAsyncErrors(async (req, res, next) => {
     // Generate QR as Buffer
     const qrBuffer = await QRCode.toBuffer(qrData);
 
-    // Upload buffer to Cloudinary
-    const qrUploadResult = await new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder: "biolab/qr-codes",
-          public_id: `qr_${sampleId}_${Date.now()}`,
-          resource_type: "image",
-        },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        }
-      );
+    // // Upload buffer to Cloudinary
+    // const qrUploadResult = await new Promise((resolve, reject) => {
+    //   const uploadStream = cloudinary.uploader.upload_stream(
+    //     {
+    //       folder: "biolab/qr-codes",
+    //       public_id: `qr_${sampleId}_${Date.now()}`,
+    //       resource_type: "image",
+    //     },
+    //     (error, result) => {
+    //       if (error) reject(error);
+    //       else resolve(result);
+    //     }
+    //   );
 
-      uploadStream.end(qrBuffer);
-    });
+    //   uploadStream.end(qrBuffer);
+    // });
+
+    let qrCodeUrl;
+
+    try {
+      // Generate QR code buffer
+      const qrBuffer = await QRCode.toBuffer(qrData);
+
+      // Upload QR code
+      const cloudResult = await uploadToCloudinary(qrBuffer, "biolab/qr-codes");
+      qrCodeUrl = cloudResult.secure_url;
+    } catch (err) {
+      logger.error("Cloudinary upload error:", {
+        error: err.message,
+        stack: err.stack,
+      });
+      return next(
+        new ErrorHandler("Failed to upload QR code: " + err.message, 502)
+      );
+    }
 
     // -----------------------------
     // ✔ Transaction: Create Sample + Update BLE readings
@@ -131,8 +172,8 @@ exports.createSample = catchAsyncErrors(async (req, res, next) => {
           temperature: temperature ? parseFloat(temperature) : null,
           salinity: salinity ? parseFloat(salinity) : null,
           notes: notes || null,
-          qr_code_data: qrUploadResult.secure_url, // <-- CLOUDINARY QR URL
-          ble_session_id: ble_session_id ? parseInt(ble_session_id) : null,
+          qr_code_data: qrCodeUrl,
+          ble_device_id: ble_session_id ? parseInt(ble_session_id) : null,
           status: "pending",
         },
       });
@@ -181,7 +222,9 @@ exports.createSample = catchAsyncErrors(async (req, res, next) => {
     await LogService.write(
       req.user.users_id,
       "CREATED",
-      `Sample created: ${sampleId}${ble_session_id ? ` (BLE Session: ${ble_session_id})` : ""}`
+      `Sample created: ${sampleId}${
+        ble_session_id ? ` (BLE Session: ${ble_session_id})` : ""
+      }`
     );
 
     res.status(201).json({
@@ -192,7 +235,7 @@ exports.createSample = catchAsyncErrors(async (req, res, next) => {
       sample: {
         sample_identifier: sampleId,
         samples_id: result.samples_id,
-        qr_code: qrUploadResult.secure_url,
+        qr_code: qrCodeUrl,
         ble_session_id: result.ble_session_id,
       },
     });
@@ -207,7 +250,6 @@ exports.createSample = catchAsyncErrors(async (req, res, next) => {
     );
   }
 });
-
 
 // Get all samples for logged-in user
 exports.getMySamples = catchAsyncErrors(async (req, res, next) => {
@@ -236,7 +278,7 @@ exports.getMySamples = catchAsyncErrors(async (req, res, next) => {
     const [samples, totalCount] = await Promise.all([
       prisma.samples.findMany({
         where: { users_id: req.user.users_id },
-        orderBy: { created_at: 'desc' },
+        orderBy: { created_at: "desc" },
         skip,
         take: limit,
         select: {
@@ -251,11 +293,11 @@ exports.getMySamples = catchAsyncErrors(async (req, res, next) => {
           geolocation: true,
           qr_code_data: true,
           created_at: true,
-        }
+        },
       }),
       prisma.samples.count({
-        where: { users_id: req.user.users_id }
-      })
+        where: { users_id: req.user.users_id },
+      }),
     ]);
 
     const response = {
@@ -266,7 +308,7 @@ exports.getMySamples = catchAsyncErrors(async (req, res, next) => {
         limit,
         total: totalCount,
         totalPages: Math.ceil(totalCount / limit),
-      }
+      },
     };
 
     // Cache for 5 minutes
@@ -279,7 +321,9 @@ exports.getMySamples = catchAsyncErrors(async (req, res, next) => {
       error: error.message,
       stack: error.stack,
     });
-    return next(new ErrorHandler("Failed to fetch samples: " + error.message, 500));
+    return next(
+      new ErrorHandler("Failed to fetch samples: " + error.message, 500)
+    );
   }
 });
 
@@ -304,7 +348,9 @@ exports.getSampleById = catchAsyncErrors(async (req, res, next) => {
       const sample = JSON.parse(cachedSample);
       // Verify ownership
       if (sample.users_id !== req.user.users_id) {
-        return next(new ErrorHandler("Unauthorized access to this sample", 403));
+        return next(
+          new ErrorHandler("Unauthorized access to this sample", 403)
+        );
       }
       return res.status(200).json({
         success: true,
@@ -340,7 +386,9 @@ exports.getSampleById = catchAsyncErrors(async (req, res, next) => {
       error: error.message,
       stack: error.stack,
     });
-    return next(new ErrorHandler("Failed to fetch sample: " + error.message, 500));
+    return next(
+      new ErrorHandler("Failed to fetch sample: " + error.message, 500)
+    );
   }
 });
 
@@ -374,9 +422,9 @@ exports.getSampleByQRCode = catchAsyncErrors(async (req, res, next) => {
             first_name: true,
             last_name: true,
             email: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
     if (!sample) {
@@ -397,7 +445,9 @@ exports.getSampleByQRCode = catchAsyncErrors(async (req, res, next) => {
       error: error.message,
       stack: error.stack,
     });
-    return next(new ErrorHandler("Failed to fetch sample: " + error.message, 500));
+    return next(
+      new ErrorHandler("Failed to fetch sample: " + error.message, 500)
+    );
   }
 });
 
@@ -491,7 +541,6 @@ exports.deleteSample = catchAsyncErrors(async (req, res, next) => {
   }
 });
 
-
 // Share sample with another user (via email)
 exports.shareSample = catchAsyncErrors(async (req, res, next) => {
   try {
@@ -502,7 +551,7 @@ exports.shareSample = catchAsyncErrors(async (req, res, next) => {
       return next(new ErrorHandler("Unauthorized", 401));
     }
 
-    if (!recipientEmail || !recipientEmail.includes('@')) {
+    if (!recipientEmail || !recipientEmail.includes("@")) {
       return next(new ErrorHandler("Valid recipient email is required", 400));
     }
 
@@ -520,14 +569,16 @@ exports.shareSample = catchAsyncErrors(async (req, res, next) => {
 
     // Check if recipient exists
     const recipient = await prisma.users.findUnique({
-      where: { email: recipientEmail }
+      where: { email: recipientEmail },
     });
 
     if (!recipient) {
       return next(new ErrorHandler("Recipient not found in system", 404));
     }
 
-    const shareLink = `${process.env.FRONTEND_URL || "http://localhost:3000"}/samples/shared/${sample.sample_identifier}`;
+    const shareLink = `${
+      process.env.FRONTEND_URL || "http://localhost:3000"
+    }/samples/shared/${sample.sample_identifier}`;
 
     await sendMail({
       email: recipientEmail,
@@ -537,7 +588,7 @@ exports.shareSample = catchAsyncErrors(async (req, res, next) => {
         shareLink,
         sampleId: sample.sample_identifier,
         sampleType: sample.sample_type,
-        senderName: `${req.user.first_name} ${req.user.last_name}`
+        senderName: `${req.user.first_name} ${req.user.last_name}`,
       },
     });
 
@@ -552,7 +603,9 @@ exports.shareSample = catchAsyncErrors(async (req, res, next) => {
       error: error.message,
       stack: error.stack,
     });
-    return next(new ErrorHandler("Failed to share sample: " + error.message, 500));
+    return next(
+      new ErrorHandler("Failed to share sample: " + error.message, 500)
+    );
   }
 });
 
@@ -602,12 +655,13 @@ exports.exportSamplePDF = catchAsyncErrors(async (req, res, next) => {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=Sample-${sample.sample_identifier}-Report-${Date.now()}.pdf`
+      `attachment; filename=Sample-${
+        sample.sample_identifier
+      }-Report-${Date.now()}.pdf`
     );
     res.setHeader("Content-Length", pdfBuffer.length);
 
     res.send(pdfBuffer);
-
   } catch (error) {
     logger.error("Export PDF error:", {
       sampleId: req.params.id,
@@ -615,10 +669,11 @@ exports.exportSamplePDF = catchAsyncErrors(async (req, res, next) => {
       error: error.message,
       stack: error.stack,
     });
-    return next(new ErrorHandler("Failed to generate PDF: " + error.message, 500));
+    return next(
+      new ErrorHandler("Failed to generate PDF: " + error.message, 500)
+    );
   }
 });
-
 
 // Get sample data for charts
 exports.getSampleChartData = catchAsyncErrors(async (req, res, next) => {
@@ -629,7 +684,11 @@ exports.getSampleChartData = catchAsyncErrors(async (req, res, next) => {
 
     const { sampleType, startDate, endDate } = req.query;
 
-    const cacheKey = getSampleChartCacheKey(req.user.users_id, { sampleType, startDate, endDate });
+    const cacheKey = getSampleChartCacheKey(req.user.users_id, {
+      sampleType,
+      startDate,
+      endDate,
+    });
 
     // Check cache
     const cachedData = await redis.get(cacheKey);
@@ -648,14 +707,14 @@ exports.getSampleChartData = catchAsyncErrors(async (req, res, next) => {
       ...(endDate && {
         collection_datetime: {
           ...(startDate && { gte: new Date(startDate) }),
-          lte: new Date(endDate)
-        }
+          lte: new Date(endDate),
+        },
       }),
     };
 
     const samples = await prisma.samples.findMany({
       where,
-      orderBy: { collection_datetime: 'asc' },
+      orderBy: { collection_datetime: "asc" },
       select: {
         sample_identifier: true,
         sample_type: true,
@@ -666,7 +725,7 @@ exports.getSampleChartData = catchAsyncErrors(async (req, res, next) => {
         geolocation: true,
         latitude: true,
         longitude: true,
-      }
+      },
     });
 
     // Calculate statistics
@@ -678,7 +737,9 @@ exports.getSampleChartData = catchAsyncErrors(async (req, res, next) => {
       sampleTypeDistribution: {},
     };
 
-    let phCount = 0, tempCount = 0, salinityCount = 0;
+    let phCount = 0,
+      tempCount = 0,
+      salinityCount = 0;
 
     samples.forEach((sample) => {
       if (sample.ph !== null) {
@@ -695,12 +756,18 @@ exports.getSampleChartData = catchAsyncErrors(async (req, res, next) => {
       }
 
       const type = sample.sample_type;
-      stats.sampleTypeDistribution[type] = (stats.sampleTypeDistribution[type] || 0) + 1;
+      stats.sampleTypeDistribution[type] =
+        (stats.sampleTypeDistribution[type] || 0) + 1;
     });
 
-    stats.avgPh = phCount > 0 ? parseFloat((stats.avgPh / phCount).toFixed(2)) : 0;
-    stats.avgTemp = tempCount > 0 ? parseFloat((stats.avgTemp / tempCount).toFixed(2)) : 0;
-    stats.avgSalinity = salinityCount > 0 ? parseFloat((stats.avgSalinity / salinityCount).toFixed(2)) : 0;
+    stats.avgPh =
+      phCount > 0 ? parseFloat((stats.avgPh / phCount).toFixed(2)) : 0;
+    stats.avgTemp =
+      tempCount > 0 ? parseFloat((stats.avgTemp / tempCount).toFixed(2)) : 0;
+    stats.avgSalinity =
+      salinityCount > 0
+        ? parseFloat((stats.avgSalinity / salinityCount).toFixed(2))
+        : 0;
 
     const response = {
       success: true,
@@ -718,7 +785,9 @@ exports.getSampleChartData = catchAsyncErrors(async (req, res, next) => {
       error: error.message,
       stack: error.stack,
     });
-    return next(new ErrorHandler("Failed to fetch chart data: " + error.message, 500));
+    return next(
+      new ErrorHandler("Failed to fetch chart data: " + error.message, 500)
+    );
   }
 });
 
@@ -846,7 +915,9 @@ exports.updateSample = catchAsyncErrors(async (req, res, next) => {
           geolocation !== undefined ? geolocation : existingSample.geolocation,
 
         latitude:
-          latitude !== undefined ? parseFloat(latitude) : existingSample.latitude,
+          latitude !== undefined
+            ? parseFloat(latitude)
+            : existingSample.latitude,
 
         longitude:
           longitude !== undefined
@@ -911,7 +982,6 @@ exports.updateSample = catchAsyncErrors(async (req, res, next) => {
   }
 });
 
-
 // Delete sample (Admin)
 exports.deleteSampleAdmin = catchAsyncErrors(async (req, res, next) => {
   try {
@@ -971,14 +1041,13 @@ exports.deleteSampleAdmin = catchAsyncErrors(async (req, res, next) => {
   }
 });
 
-
 // Update sample status (Admin)
 exports.updateSampleStatus = catchAsyncErrors(async (req, res, next) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
 
-    if (!req.admin?.admins_id && req.user?.role !== 'admin') {
+    if (!req.admin?.admins_id && req.user?.role !== "admin") {
       return next(new ErrorHandler("Admin access required", 403));
     }
 
@@ -989,7 +1058,12 @@ exports.updateSampleStatus = catchAsyncErrors(async (req, res, next) => {
     // Validate status
     const validStatuses = ["pending", "approved", "rejected", "under_review"];
     if (!validStatuses.includes(status)) {
-      return next(new ErrorHandler("Invalid status value. Must be: " + validStatuses.join(', '), 400));
+      return next(
+        new ErrorHandler(
+          "Invalid status value. Must be: " + validStatuses.join(", "),
+          400
+        )
+      );
     }
 
     // Check if sample exists
@@ -1018,7 +1092,9 @@ exports.updateSampleStatus = catchAsyncErrors(async (req, res, next) => {
 
     // Invalidate caches
     await redis.del(getSampleCacheKey(id));
-    const userSampleKeys = await redis.keys(`user:${sample.users_id}:samples:*`);
+    const userSampleKeys = await redis.keys(
+      `user:${sample.users_id}:samples:*`
+    );
     if (userSampleKeys.length > 0) {
       await redis.del(...userSampleKeys);
     }
@@ -1041,7 +1117,9 @@ exports.updateSampleStatus = catchAsyncErrors(async (req, res, next) => {
             sampleId: sample.sample_identifier,
             status: status,
             statusMessage: statusMessages[status],
-            dashboardLink: `${process.env.FRONTEND_URL || "http://localhost:3000"}/dashboard`,
+            dashboardLink: `${
+              process.env.FRONTEND_URL || "http://localhost:3000"
+            }/dashboard`,
           },
         });
       } catch (emailError) {
@@ -1066,17 +1144,20 @@ exports.updateSampleStatus = catchAsyncErrors(async (req, res, next) => {
       error: error.message,
       stack: error.stack,
     });
-    return next(new ErrorHandler("Failed to update status: " + error.message, 500));
+    return next(
+      new ErrorHandler("Failed to update status: " + error.message, 500)
+    );
   }
 });
 
 // Get sample analytics (Admin)
 exports.getSampleAnalyticsAdmin = catchAsyncErrors(async (req, res, next) => {
   try {
-
     const { startDate, endDate, sampleType } = req.query;
 
-    const cacheKey = `sample:analytics:${sampleType || 'all'}:${startDate || 'any'}:${endDate || 'any'}`;
+    const cacheKey = `sample:analytics:${sampleType || "all"}:${
+      startDate || "any"
+    }:${endDate || "any"}`;
 
     // 2️⃣ Check Redis cache
     const cachedAnalytics = await redis.get(cacheKey);
@@ -1091,12 +1172,13 @@ exports.getSampleAnalyticsAdmin = catchAsyncErrors(async (req, res, next) => {
     // 3️⃣ Build Prisma where clause
     const where = {
       ...(sampleType && sampleType !== "all" && { sample_type: sampleType }),
-      ...(startDate && endDate && {
-        collection_datetime: {
-          gte: new Date(startDate),
-          lte: new Date(endDate),
-        },
-      }),
+      ...(startDate &&
+        endDate && {
+          collection_datetime: {
+            gte: new Date(startDate),
+            lte: new Date(endDate),
+          },
+        }),
     };
 
     // 4️⃣ Overall statistics
@@ -1108,10 +1190,10 @@ exports.getSampleAnalyticsAdmin = catchAsyncErrors(async (req, res, next) => {
       underReviewSamples,
     ] = await Promise.all([
       prisma.samples.count({ where }),
-      prisma.samples.count({ where: { ...where, status: 'pending' } }),
-      prisma.samples.count({ where: { ...where, status: 'approved' } }),
-      prisma.samples.count({ where: { ...where, status: 'rejected' } }),
-      prisma.samples.count({ where: { ...where, status: 'under_review' } }),
+      prisma.samples.count({ where: { ...where, status: "pending" } }),
+      prisma.samples.count({ where: { ...where, status: "approved" } }),
+      prisma.samples.count({ where: { ...where, status: "rejected" } }),
+      prisma.samples.count({ where: { ...where, status: "under_review" } }),
     ]);
 
     // 5️⃣ Fetch samples for averages
@@ -1121,11 +1203,18 @@ exports.getSampleAnalyticsAdmin = catchAsyncErrors(async (req, res, next) => {
     });
 
     // 6️⃣ Calculate averages
-    const avg = (arr) => (arr.length ? parseFloat((arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(2)) : null);
+    const avg = (arr) =>
+      arr.length
+        ? parseFloat((arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(2))
+        : null;
 
-    const phValues = samples.map(s => s.ph).filter(v => v !== null);
-    const tempValues = samples.map(s => s.temperature).filter(v => v !== null);
-    const salinityValues = samples.map(s => s.salinity).filter(v => v !== null);
+    const phValues = samples.map((s) => s.ph).filter((v) => v !== null);
+    const tempValues = samples
+      .map((s) => s.temperature)
+      .filter((v) => v !== null);
+    const salinityValues = samples
+      .map((s) => s.salinity)
+      .filter((v) => v !== null);
 
     const stats = {
       total_samples: totalSamples,
@@ -1140,14 +1229,14 @@ exports.getSampleAnalyticsAdmin = catchAsyncErrors(async (req, res, next) => {
 
     // 7️⃣ Samples by type
     const samplesByType = await prisma.samples.groupBy({
-      by: ['sample_type'],
+      by: ["sample_type"],
       where,
       _count: { sample_type: true },
     });
 
     // 8️⃣ Samples by status
     const samplesByStatus = await prisma.samples.groupBy({
-      by: ['status'],
+      by: ["status"],
       where,
       _count: { status: true },
     });
@@ -1163,20 +1252,20 @@ exports.getSampleAnalyticsAdmin = catchAsyncErrors(async (req, res, next) => {
         ...(sampleType && sampleType !== "all" && { sample_type: sampleType }),
       },
       _count: true,
-      orderBy: { collection_datetime: 'asc' },
+      orderBy: { collection_datetime: "asc" },
     });
 
-    const samplesTrend = samplesTrendRaw.map(item => ({
+    const samplesTrend = samplesTrendRaw.map((item) => ({
       date: item.collection_datetime.toISOString().split("T")[0],
       count: item._count,
     }));
 
     // 🔟 Top users by sample count
     const topUsers = await prisma.samples.groupBy({
-      by: ['users_id'],
+      by: ["users_id"],
       where,
       _count: { users_id: true },
-      orderBy: { _count: { users_id: 'desc' } },
+      orderBy: { _count: { users_id: "desc" } },
       take: 10,
     });
 
@@ -1185,7 +1274,12 @@ exports.getSampleAnalyticsAdmin = catchAsyncErrors(async (req, res, next) => {
       topUsers.map(async (item) => {
         const user = await prisma.users.findUnique({
           where: { users_id: item.users_id },
-          select: { users_id: true, first_name: true, last_name: true, email: true },
+          select: {
+            users_id: true,
+            first_name: true,
+            last_name: true,
+            email: true,
+          },
         });
         return {
           ...user,
@@ -1198,11 +1292,11 @@ exports.getSampleAnalyticsAdmin = catchAsyncErrors(async (req, res, next) => {
     // 1️⃣2️⃣ Final analytics object
     const analytics = {
       overview: stats,
-      samplesByType: samplesByType.map(item => ({
+      samplesByType: samplesByType.map((item) => ({
         sample_type: item.sample_type,
         count: item._count.sample_type,
       })),
-      samplesByStatus: samplesByStatus.map(item => ({
+      samplesByStatus: samplesByStatus.map((item) => ({
         status: item.status,
         count: item._count.status,
       })),
@@ -1218,13 +1312,16 @@ exports.getSampleAnalyticsAdmin = catchAsyncErrors(async (req, res, next) => {
       analytics,
       cached: false,
     });
-
   } catch (error) {
-    logger.error("Get sample analytics error:", { error: error.message, stack: error.stack });
-    return next(new ErrorHandler("Failed to fetch analytics: " + error.message, 500));
+    logger.error("Get sample analytics error:", {
+      error: error.message,
+      stack: error.stack,
+    });
+    return next(
+      new ErrorHandler("Failed to fetch analytics: " + error.message, 500)
+    );
   }
 });
-
 
 // Bulk update sample status (Admin)
 exports.bulkUpdateSampleStatus = catchAsyncErrors(async (req, res, next) => {
@@ -1248,7 +1345,7 @@ exports.bulkUpdateSampleStatus = catchAsyncErrors(async (req, res, next) => {
     // Update all samples
     const result = await prisma.samples.updateMany({
       where: {
-        samples_id: { in: sampleIds.map(id => parseInt(id)) },
+        samples_id: { in: sampleIds.map((id) => parseInt(id)) },
       },
       data: { status },
     });
@@ -1261,14 +1358,16 @@ exports.bulkUpdateSampleStatus = catchAsyncErrors(async (req, res, next) => {
     // Get affected users to clear their cache
     const affectedSamples = await prisma.samples.findMany({
       where: {
-        samples_id: { in: sampleIds.map(id => parseInt(id)) },
+        samples_id: { in: sampleIds.map((id) => parseInt(id)) },
       },
       select: { users_id: true },
-      distinct: ['users_id'],
+      distinct: ["users_id"],
     });
 
     for (const sample of affectedSamples) {
-      const userSampleKeys = await redis.keys(`user:${sample.users_id}:samples:*`);
+      const userSampleKeys = await redis.keys(
+        `user:${sample.users_id}:samples:*`
+      );
       if (userSampleKeys.length > 0) {
         await redis.del(...userSampleKeys);
       }
@@ -1291,6 +1390,8 @@ exports.bulkUpdateSampleStatus = catchAsyncErrors(async (req, res, next) => {
       error: error.message,
       stack: error.stack,
     });
-    return next(new ErrorHandler("Failed to bulk update: " + error.message, 500));
+    return next(
+      new ErrorHandler("Failed to bulk update: " + error.message, 500)
+    );
   }
 });

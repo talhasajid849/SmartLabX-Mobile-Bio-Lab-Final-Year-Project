@@ -165,6 +165,7 @@ exports.getUser = catchAsyncErrors(async (req, res, next) => {
         profile_picture: true,
         created_at: true,
         last_login: true,
+        updated_at: true,
       }
     });
 

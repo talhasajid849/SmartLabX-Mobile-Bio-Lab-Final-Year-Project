@@ -10,6 +10,7 @@ import { server } from '@/server/servert';
 import { toast } from 'react-toastify';
 import { loadUser } from '@/store/actions/auth.action';
 import Image from 'next/image';
+import LoadingSpinner from '@/components/visitor/LoadingSpinner';
 
 export default function ProfilePage() {
   const {user} = useSelector((state) => state.user);
@@ -136,8 +137,9 @@ export default function ProfilePage() {
   }
 };
 
+// console.log(user)
 
-  if (!user) return <div className={styles.loading}>Loading...</div>;
+  if (!user) return <div className={styles.loading}> <LoadingSpinner/> </div>;
 
   return (
     <div className={styles.profilePage}>
@@ -145,7 +147,7 @@ export default function ProfilePage() {
         <div className={styles.avatarSection}>
           <div className={styles.avatarWrapper}>
             <Image
-              src={user?.profile_picture || '/placeholder-avatar.png'} 
+              src={user?.profile_picture || '/default_profile.jpg'} 
               alt="Profile" 
               className={styles.avatar}
               width={50}

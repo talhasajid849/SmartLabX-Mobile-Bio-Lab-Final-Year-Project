@@ -70,12 +70,14 @@ export default function RegisterModal({ isOpen, onClose }) {
           'Content-Type': 'multipart/form-data',
         },
       };
-      await axios.post(`${server}/auth/register`, formDataToSend, config);
+      const res = await axios.post(`${server}/auth/register`, formDataToSend, config);
+      console.log(res.data)
       toast.success('Registration successful! Please login to continue.');
       onClose();
       window.location.href = '/login';
     } catch (err) {
       setErrors({ submit: err.message });
+      toast.error(err.response?.data?.message || "Registration failed");
     } finally {
       setLoading(false);
     }

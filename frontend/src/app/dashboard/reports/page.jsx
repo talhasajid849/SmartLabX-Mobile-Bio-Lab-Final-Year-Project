@@ -310,6 +310,7 @@ const ReportCard = memo(function ReportCard({
   handleExport,
   handleViewReport,
 }) {
+  // console.log(report)
   return (
     <div className={styles.reportCard}>
       <div className={styles.cardHeader}>
@@ -321,8 +322,8 @@ const ReportCard = memo(function ReportCard({
 
       <div className={styles.cardBody}>
         <p className={styles.sampleInfo}>
-          <strong>Sample:</strong> {report.sample_identifier} (
-          {report.sample_type})
+          <strong>Sample:</strong> {report.sample.sample_identifier} (
+          {report.sample.sample_type})
         </p>
 
         <p className={styles.dateInfo}>

@@ -142,7 +142,7 @@ if (!isInitialized || loading) {
             onMouseLeave={(e) => (e.currentTarget.style.background = "#0f172a")}
           >
             <Image
-              src={user.profile_picture || "/placeholder-avatar.png"}
+              src={user.profile_picture || "/default_profile.jpg"}
               alt={`${user.first_name}'s profile`}
               className={styles.avatar}
               width={50}

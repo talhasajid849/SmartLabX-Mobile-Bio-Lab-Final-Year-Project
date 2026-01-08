@@ -13,7 +13,6 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@prisma/client": "^4.15.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.7.0",
@@ -35,7 +34,6 @@
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.10",
     "pdfkit": "^0.17.2",
-    "prisma": "^4.15.0",
     "qrcode": "^1.5.4",
     "streamifier": "^0.1.1",
     "uuid": "^13.0.0",
@@ -44,6 +42,9 @@
     "xss-clean": "^0.1.4"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "@prisma/client": "^4.16.2",
+    "baseline-browser-mapping": "^2.9.12",
+    "nodemon": "^3.1.10",
+    "prisma": "^4.16.2"
   }
 }

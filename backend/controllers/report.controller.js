@@ -6,7 +6,8 @@ const ErrorHandler = require("../utils/Errorhandler");
 const sendMail = require("../utils/sendEmail");
 const crypto = require("crypto");
 const redis = require("../utils/redis");
-const NotificationService = require("../services/NotificationService")
+const NotificationService = require("../services/NotificationService");
+const LogService = require("../services/logService");
 
 // Cache key helpers
 const getReportCacheKey = (reportId) => `report:${reportId}`;

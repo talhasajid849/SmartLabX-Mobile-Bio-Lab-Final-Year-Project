@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "C:\\Users\\Talha Sajid\\Desktop\\FYP-Code\\SmartLabX-Mobile-Bio-Lab-Final-Year-Project\\backend\\logs\\.95462485543d3000bef5cc30d286f92c696ef652-audit.json",
+    "files": [
+        {
+            "date": 1767841042443,
+            "name": "C:\\Users\\Talha Sajid\\Desktop\\FYP-Code\\SmartLabX-Mobile-Bio-Lab-Final-Year-Project\\backend\\logs\\error-2026-01-08.log",
+            "hash": "2ab2c3a3217809d6ce9643efd9f1b8bd706bacbddc07e2dab150770883a8544b"
+        }
+    ],
+    "hashType": "sha256"
+}

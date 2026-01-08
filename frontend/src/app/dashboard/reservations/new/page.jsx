@@ -5,6 +5,7 @@ import "@/styles/user/reservations.styles.css";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { server } from "@/server/servert";
+import { useRouter } from "next/navigation";
 
 // const mockCheckSlots = async (date) => {
 //   await new Promise((resolve) => setTimeout(resolve, 500));
@@ -31,6 +32,7 @@ export default function ImprovedReservationFlow() {
   const [purpose, setPurpose] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const router = useRouter();
 
   useEffect(() => {
     if (selectedDate) loadAvailableSlots(selectedDate);
@@ -89,6 +91,7 @@ export default function ImprovedReservationFlow() {
       setSelectedDate(null);
       setSelectedTime(null);
       setPurpose("");
+      router.push("/dashboard/reservations");
     } finally {
       setSubmitting(false);
     }
@@ -163,7 +166,7 @@ export default function ImprovedReservationFlow() {
 
   return (
     <div className="reservation-container">
-      <h1 className="page-title">Book Mobile Bio Lab</h1>
+      <h1 style={{color: "white"}} className="page-title">Book Mobile Bio Lab</h1>
       {/* Progress Bar */}
       <div className="progress-wrapper">
         {[1, 2, 3].map((num) => (
