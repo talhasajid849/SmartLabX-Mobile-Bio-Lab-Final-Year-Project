@@ -9,10 +9,7 @@ import styles from "@/styles/user/dashboard.module.css";
 import { getResponsiveStyles } from "@/styles/admin/dashboard.styles";
 import "@/styles/user/dashboard-animations.css";
 import LoadingSpinner from "@/components/visitor/LoadingSpinner";
-import Link from "next/navigation";
 import { toast } from "react-toastify";
-import axios from "axios";
-import { server } from "@/server/servert";
 import Image from "next/image";
 
 export default function DashboardLayout({ children }) {
@@ -46,8 +43,6 @@ export default function DashboardLayout({ children }) {
     }
   }, [dispatch, isInitialized]);
 
- 
-
   const handleLogout = async (e) => {
     e.preventDefault();
     try {
@@ -67,19 +62,15 @@ export default function DashboardLayout({ children }) {
     }
   };
 
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push("/login");
+    }
+  }, [isAuthenticated, router]);
 
-   useEffect(() => {
-  if (!isAuthenticated) {
-    router.push("/login");
+  if (!isInitialized || loading) {
+    return <LoadingSpinner />;
   }
-}, [isAuthenticated, router]);
-
-
-if (!isInitialized || loading) {
-  return <LoadingSpinner />;
-}
-
-
 
   // Get responsive styles
   const isMobile = windowSize.width < 768;
