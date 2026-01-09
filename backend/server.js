@@ -61,7 +61,7 @@ app.use(ErrorMiddleware);
 
 
 // ------------ AUTO CLEAN NOTIFICATION + lOGS ------------
-require("./jobs/cleanup.job");
+// require("./jobs/cleanup.job");
 
 
 // ------------ SERVER + DB ------------
