@@ -24,7 +24,7 @@ app.use(cookieParser());
 // ------------ CORS ------------
 app.use(
   cors({
-    origin: ["http://localhost:3000"],
+    origin: ["https://smart-lab-x-mobile-bio-lab-final-ye.vercel.app"],
     credentials: true,
     exposedHeaders: ["Content-Disposition"],
   })
