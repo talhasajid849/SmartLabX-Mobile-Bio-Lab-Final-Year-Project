@@ -1,6 +1,12 @@
 const { PrismaClient } = require('@prisma/client');
 
-const prisma = new PrismaClient();
+let prisma;
+
+if (!global.prisma) {
+  global.prisma = new PrismaClient();
+}
+
+prisma = global.prisma;
 
 async function connectDB() {
   try {
@@ -8,7 +14,7 @@ async function connectDB() {
     console.log('✅ PostgreSQL connected via Prisma!');
   } catch (err) {
     console.error('❌ Failed to connect to PostgreSQL:', err);
-    process.exit(1); // exit if DB fails
+    // ❌ Don't exit on serverless
   }
 }
 
