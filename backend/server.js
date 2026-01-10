@@ -24,7 +24,10 @@ app.use(cookieParser());
 // ------------ CORS ------------
 app.use(
   cors({
-    origin: ["https://smart-lab-x-mobile-bio-lab-final-ye.vercel.app"],
+    origin: [
+      "http://localhost:3000",
+      "https://smart-lab-x-mobile-bio-lab-final-ye.vercel.app",
+    ],
     credentials: true,
     exposedHeaders: ["Content-Disposition"],
   })
@@ -35,10 +38,14 @@ app.use(
 // app.use(speedLimiter);
 
 // ------------ STATIC ------------
-app.use("/api/uploads", (req, res, next) => {
-  res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-  next();
-}, express.static(path.join(__dirname, "uploads")));
+app.use(
+  "/api/uploads",
+  (req, res, next) => {
+    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    next();
+  },
+  express.static(path.join(__dirname, "uploads"))
+);
 
 // ------------ ROUTES ------------
 app.use("/api/auth", require("./routes/authRoutes"));
@@ -59,10 +66,8 @@ app.get("/api/test", (req, res) => {
 // ------------ ERROR HANDLER ------------
 app.use(ErrorMiddleware);
 
-
 // ------------ AUTO CLEAN NOTIFICATION + lOGS ------------
 // require("./jobs/cleanup.job");
-
 
 // ------------ SERVER + DB ------------
 (async function startServer() {
@@ -74,4 +79,3 @@ app.use(ErrorMiddleware);
 })();
 
 module.exports = app;
-
