@@ -44,7 +44,7 @@ app.use(
     res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
     next();
   },
-  express.static(path.join(__dirname, "uploads"))
+  // express.static(path.join(__dirname, "uploads"))
 );
 
 // ------------ ROUTES ------------
@@ -70,12 +70,12 @@ app.use(ErrorMiddleware);
 // require("./jobs/cleanup.job");
 
 // ------------ SERVER + DB ------------
-(async function startServer() {
-  await connectDB();
-  // const PORT = process.env.PORT || 5000;
-  // app.listen(PORT, () => {
-  //   console.log(`✅ Server running on http://localhost:${PORT}`);
-  // });
-})();
+// (async function startServer() {
+//   await connectDB();
+//   // const PORT = process.env.PORT || 5000;
+//   // app.listen(PORT, () => {
+//   //   console.log(`✅ Server running on http://localhost:${PORT}`);
+//   // });
+// })();
 
 module.exports = app;
